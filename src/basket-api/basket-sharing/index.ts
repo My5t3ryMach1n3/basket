@@ -1,5 +1,5 @@
-// Shares a shopper's basket by email, from the basket service.
-import { BasketError, getBasket, type ServicePorts } from "./index.js";
+// Shares a shopper's basket by email. Sends the email as the share is made.
+import { BasketError, getBasket, type ServicePorts } from "../basket-service/index.js";
 
 export interface Email {
   to: string;

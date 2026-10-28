@@ -8,7 +8,7 @@ import {
   setQuantity,
   type ServicePorts,
 } from "../basket-service/index.js";
-import { shareBasket, type SharingPorts } from "../basket-service/share.js";
+import { shareBasket, type SharingPorts } from "../basket-sharing/index.js";
 import { restoreSession, type RestorePorts } from "../session-restore/index.js";
 
 export type Ports = AuthPorts & ServicePorts & RestorePorts & SharingPorts;

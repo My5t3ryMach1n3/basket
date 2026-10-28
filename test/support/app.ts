@@ -1,7 +1,7 @@
 // Runs the basket API against in-memory stand-ins for Postgres, the identity provider, the product catalogue and the
 // email provider.
 import { handle, type Ports } from "../../src/basket-api/basket-controller/index.js";
-import type { Email } from "../../src/basket-api/basket-service/share.js";
+import type { Email } from "../../src/basket-api/basket-sharing/index.js";
 
 const products = [
   { sku: "mug", name: "Enamel mug", price: 899 },
