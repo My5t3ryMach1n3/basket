@@ -50,3 +50,10 @@ export async function addItem(ports: ServicePorts, shopperId: string, sku: strin
   else throw new BasketError(400, `Quantity must be 1 to ${maxQuantity}`);
   await saveBasket(ports, basket);
 }
+
+export async function removeItem(ports: ServicePorts, shopperId: string, sku: string): Promise<void> {
+  const basket = await loadBasket(ports, shopperId);
+  const items = basket.items.filter((item) => item.sku !== sku);
+  if (items.length === basket.items.length) throw new BasketError(404, `${sku} isn't in the basket`);
+  await saveBasket(ports, { shopperId, items });
+}

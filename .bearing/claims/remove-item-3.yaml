@@ -1,0 +1,11 @@
+branch: remove-item-3
+issues: ["#3"]
+model:
+  added: []
+  removed: []
+files:
+  - path: src/basket-api/basket-controller/index.ts
+    component: basketController
+  - path: src/basket-api/basket-service/index.ts
+    component: basketService
+note: "Implements #3 within existing components."
