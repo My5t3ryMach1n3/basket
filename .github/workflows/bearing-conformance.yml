@@ -1,0 +1,38 @@
+# Written by `bearing init`. Runs the PR's code, so it has no secrets and a read-only token. It can't comment on a PR
+# from a fork, so it uploads the comment it writes and bearing-report.yml posts it.
+name: Bearing conformance
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  # To read the requirement issues.
+  issues: read
+
+# One run per PR at a time; a newer push cancels the older run.
+concurrency:
+  group: bearing-conformance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  conformance:
+    # The job's name is the check that branch protection requires.
+    name: bearing/conformance
+    runs-on: ubuntu-latest
+    steps:
+      # The PR's head with its history rather than GitHub's merge commit, so Bearing can find where the PR forked and
+      # tell whether the base branch's target moved since.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The project's own dependencies, so its tests run.
+      - run: npm ci
+      # Validates the target, runs the integration tests with tracing on, derives the as-built model, runs the checks
+      # and writes the comment. Fails if the target is invalid or a blocking check fails.
+      - uses: My5t3ryMach1n3/bearing/actions/conformance@v0.1.0-rc.1

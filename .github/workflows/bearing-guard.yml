@@ -1,0 +1,31 @@
+# Written by `bearing init`. Runs from the base branch and never checks out or runs the PR's code: the guard action
+# runs `bearing guard`, which reads the PR through the API only. So a PR can't change or switch off the job that flags
+# it; a PR that edits this file is itself flagged, and the edit only takes effect once it's merged.
+name: Bearing guard
+
+on:
+  pull_request_target:
+    # edited: the PR's base branch may have changed, and with it the files it changes.
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  statuses: write
+
+# One run per PR at a time, so an older push can't overwrite a newer one's label, comment or status.
+concurrency:
+  group: bearing-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Labels a target change architecture-change, puts the changed files' diffs at the top of Bearing's comment and
+      # sets bearing/target. The status is always a success: the guard reports, and merging approves the change.
+      - uses: My5t3ryMach1n3/bearing/actions/guard@v0.1.0-rc.1
