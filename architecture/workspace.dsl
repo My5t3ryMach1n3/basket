@@ -72,13 +72,6 @@ workspace "Basket" "The approved target architecture: the desired state every PR
         }
       }
 
-      sessionCache = container "Session cache" "Holds baskets whose session expired so they can be restored" "Redis" {
-        tags "Database"
-        properties {
-          "bearing.requirements" "#4"
-        }
-      }
-
       database = container "Database" "One row per shopper holding their saved basket" "PostgreSQL" {
         tags "Database"
         properties {
@@ -117,12 +110,12 @@ workspace "Basket" "The approved target architecture: the desired state every PR
         "bearing.requirements" "#4"
       }
     }
-    sessionRestore -> identityProvider "Checks the new sign-in with" "OAuth 2.0/HTTPS" {
+    sessionRestore -> authMiddleware "Checks the new sign-in using" {
       properties {
         "bearing.requirements" "#4"
       }
     }
-    sessionRestore -> sessionCache "Loads expired baskets from" "RESP" {
+    sessionRestore -> basketRepository "Loads saved baskets from" {
       properties {
         "bearing.requirements" "#4"
       }
@@ -158,9 +151,6 @@ workspace "Basket" "The approved target architecture: the desired state every PR
           lb = infrastructureNode "Load balancer" "Terminates HTTPS for the basket API" "Application Load Balancer"
           ecs = deploymentNode "ECS service" "" "AWS Fargate" "" 2 {
             containerInstance basketApi
-          }
-          elasticache = deploymentNode "ElastiCache" "" "Amazon ElastiCache for Redis 7" {
-            containerInstance sessionCache
           }
           rds = deploymentNode "RDS" "" "Amazon RDS for PostgreSQL 16" {
             containerInstance database
@@ -227,8 +217,10 @@ workspace "Basket" "The approved target architecture: the desired state every PR
     dynamic basketApi "req-4" "#4 Restore the basket after the session expires" {
       webApp -> basketController "POST /session/restore"
       basketController -> sessionRestore "restoreSession()"
-      sessionRestore -> identityProvider "Introspects the new token"
-      sessionRestore -> sessionCache "Gets the expired basket"
+      sessionRestore -> authMiddleware "authenticate()"
+      authMiddleware -> identityProvider "Introspects the new token"
+      sessionRestore -> basketRepository "loadBasket()"
+      basketRepository -> database "Selects the saved basket"
       autoLayout
       properties {
         "bearing.criteria" "AC1:c417b1ba,AC2:076fcca2"
