@@ -1,0 +1,11 @@
+branch: 5-share-basket
+issues: ["#5"]
+model:
+  added: []
+  removed: []
+files:
+  - path: src/basket-api/basket-controller/index.ts
+    component: basketController
+  - path: src/basket-api/basket-service/share.ts
+    component: basketService
+note: "Implements #5 in the basket service, within existing components."

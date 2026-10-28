@@ -5,12 +5,13 @@ import {
   BasketError,
   getBasket,
   removeItem,
-  type ServicePorts,
   setQuantity,
+  type ServicePorts,
 } from "../basket-service/index.js";
+import { shareBasket, type SharingPorts } from "../basket-service/share.js";
 import { restoreSession, type RestorePorts } from "../session-restore/index.js";
 
-export type Ports = AuthPorts & ServicePorts & RestorePorts;
+export type Ports = AuthPorts & ServicePorts & RestorePorts & SharingPorts;
 
 export interface ApiRequest {
   method: string;
@@ -31,8 +32,12 @@ export async function handle(ports: Ports, request: ApiRequest): Promise<ApiResp
       return { status: 200, body: await restoreSession(ports, headers.authorization) };
     }
     const shopperId = await authenticate(ports, headers.authorization);
-    const body = (request.body ?? {}) as { sku?: string; quantity?: number };
+    const body = (request.body ?? {}) as { sku?: string; quantity?: number; to?: string };
     if (path === "/basket" && method === "GET") return { status: 200, body: await getBasket(ports, shopperId) };
+    if (path === "/basket/share" && method === "POST") {
+      await shareBasket(ports, shopperId, String(body.to));
+      return { status: 202 };
+    }
     if (path === "/basket/items" && method === "POST") {
       await addItem(ports, shopperId, String(body.sku), body.quantity ?? 1);
       return { status: 204 };
