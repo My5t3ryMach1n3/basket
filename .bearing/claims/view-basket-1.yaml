@@ -1,0 +1,7 @@
+branch: view-basket-1
+issues: ["#1"]
+model:
+  added: []
+  removed: []
+files: []
+note: "Tests #1 against the code #2 added; no code change."
