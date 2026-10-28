@@ -16,6 +16,4 @@ files:
     component: basketService
   - path: src/basket-api/basket-service/quantity.ts
     component: basketService
-  - path: src/basket-api/basket-service/retryWithBackoff.ts
-    component: basketService
 note: "Implements #2 within existing components."
