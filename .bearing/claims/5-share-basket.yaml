@@ -1,11 +1,13 @@
 branch: 5-share-basket
 issues: ["#5"]
 model:
-  added: [basketController->basketSharing, basketSharing, basketSharing->basketService, basketSharing->emailProvider, emailProvider]
+  added: [basketController->basketSharing, basketSharing, basketSharing->basketService, basketSharing->emailOutbox, emailOutbox, emailOutbox->database, emailOutbox->emailProvider, emailProvider]
   removed: []
 files:
   - path: src/basket-api/basket-controller/index.ts
     component: basketController
   - path: src/basket-api/basket-sharing/index.ts
     component: basketSharing
-note: "Proposes a target change for #5: a basket sharing component and an external email provider, after the attempt within the target failed. See ADR 0001."
+  - path: src/basket-api/email-outbox/index.ts
+    component: emailOutbox
+note: "Proposes a target change for #5: basket sharing and an email outbox in front of an external email provider, so a share never waits on it. See ADR 0001."
