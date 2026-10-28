@@ -76,6 +76,13 @@ workspace "Basket" "The approved target architecture: the desired state every PR
             "bearing.requirements" "#5"
           }
         }
+        emailOutbox = component "Email outbox" {
+          description "Queues outbound email in Postgres and sends it on a schedule, so the provider never holds up a request"
+          properties {
+            "bearing.path" "src/basket-api/email-outbox"
+            "bearing.requirements" "#5"
+          }
+        }
         sessionRestore = component "Session restore" {
           description "Hands a shopper back their saved basket when they sign in after their session expired"
           properties {
@@ -143,7 +150,17 @@ workspace "Basket" "The approved target architecture: the desired state every PR
         "bearing.requirements" "#5"
       }
     }
-    basketSharing -> emailProvider "Sends the basket with" "JSON/HTTPS" {
+    basketSharing -> emailOutbox "Queues the email in" {
+      properties {
+        "bearing.requirements" "#5"
+      }
+    }
+    emailOutbox -> database "Stores queued email in" "SQL" {
+      properties {
+        "bearing.requirements" "#5"
+      }
+    }
+    emailOutbox -> emailProvider "Sends queued email with, on a schedule" "JSON/HTTPS" {
       properties {
         "bearing.requirements" "#5"
       }
@@ -263,7 +280,9 @@ workspace "Basket" "The approved target architecture: the desired state every PR
       basketService -> basketRepository "loadBasket()"
       basketRepository -> database "Selects the basket"
       basketService -> productCatalogue "Looks up current prices"
-      basketSharing -> emailProvider "Sends the email"
+      basketSharing -> emailOutbox "queueEmail()"
+      emailOutbox -> database "Inserts the email"
+      emailOutbox -> emailProvider "Sends it later, from sendPendingEmails()"
       autoLayout
       properties {
         "bearing.criteria" "AC1:e37691d8,AC2:7033594f"

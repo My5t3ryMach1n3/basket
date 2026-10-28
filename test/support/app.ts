@@ -1,7 +1,7 @@
 // Runs the basket API against in-memory stand-ins for Postgres, the identity provider, the product catalogue and the
 // email provider.
 import { handle, type Ports } from "../../src/basket-api/basket-controller/index.js";
-import type { Email } from "../../src/basket-api/basket-sharing/index.js";
+import { sendPendingEmails, type Email, type SenderPorts } from "../../src/basket-api/email-outbox/index.js";
 
 const products = [
   { sku: "mug", name: "Enamel mug", price: 899 },
@@ -18,7 +18,7 @@ export function createApp() {
   const sentEmails: Email[] = [];
   let emailProviderDown = false;
 
-  const ports: Ports = {
+  const ports: Ports & SenderPorts = {
     now: () => now,
     identityProvider: {
       async introspect(token) {
@@ -87,8 +87,8 @@ export function createApp() {
     setEmailProviderDown(down: boolean) {
       emailProviderDown = down;
     },
-    // Emails are sent as the share is made, so there's nothing queued to send.
-    sendPendingEmails: async () => 0,
+    // What the scheduled sender does on each run.
+    sendPendingEmails: () => sendPendingEmails(ports),
     get: (path: string, token?: string) => request("GET", path, token),
     post: (path: string, token?: string, body?: unknown) => request("POST", path, token, body),
     patch: (path: string, token?: string, body?: unknown) => request("PATCH", path, token, body),
