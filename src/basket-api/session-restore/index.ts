@@ -6,20 +6,16 @@ import { loadBasket, saveBasket, type RepositoryPorts, type SavedBasket } from "
 
 export type RestorePorts = AuthPorts & RepositoryPorts;
 
-// The saved basket a guest fills before signing in, keyed by their guest session.
-export function guestBasketId(guestSession: string): string {
-  return `guest:${guestSession}`;
-}
-
 export async function restoreSession(
   ports: RestorePorts,
   authorization: string | undefined,
-  guestSession?: string,
+  // The basket the shopper filled as a guest, if they did.
+  guestBasketId?: string,
 ): Promise<SavedBasket> {
   const shopperId = await authenticate(ports, authorization);
   const saved = await loadBasket(ports, shopperId);
-  if (guestSession === undefined) return saved;
-  const guest = await loadBasket(ports, guestBasketId(guestSession));
+  if (guestBasketId === undefined) return saved;
+  const guest = await loadBasket(ports, guestBasketId);
   if (guest.items.length === 0) return saved;
   for (const { sku, quantity } of guest.items) {
     const item = saved.items.find((candidate) => candidate.sku === sku);
@@ -27,7 +23,7 @@ export async function restoreSession(
     else item.quantity += quantity;
   }
   await saveBasket(ports, saved);
-  // Emptied, so signing in again with the same guest session doesn't add its items twice.
+  // Emptied, so signing in again with the same guest basket doesn't add its items twice.
   await saveBasket(ports, { shopperId: guest.shopperId, items: [] });
   return saved;
 }

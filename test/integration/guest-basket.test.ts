@@ -9,6 +9,8 @@ describe("#20 Fill a basket as a guest", () => {
 
     expect((await guest.get("/basket")).body).toMatchObject({ lines: [{ sku: "mug", quantity: 1 }] });
     expect((await app.guest("g-2").get("/basket")).body).toEqual({ lines: [], total: 0 });
+    // The rest of the guest journey, which req-20 traces whole.
+    await guest.signIn(app.signIn("ada"));
   });
 
   it("#20/AC2 lists a guest's items with current prices and the total", async () => {
@@ -21,6 +23,8 @@ describe("#20 Fill a basket as a guest", () => {
       status: 200,
       body: { lines: [{ sku: "tea", name: "Loose-leaf tea", price: 500, quantity: 2 }], total: 1000 },
     });
+    // The rest of the guest journey, which req-20 traces whole.
+    await guest.signIn(app.signIn("ada"));
   });
 
   it("#20/AC3 merges the guest's items into their saved basket when they sign in", async () => {

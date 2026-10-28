@@ -10,9 +10,12 @@ import {
   type ServicePorts,
 } from "../basket-service/index.js";
 import { shareBasket, type SharingPorts } from "../basket-sharing/index.js";
-import { guestBasketId, restoreSession, type RestorePorts } from "../session-restore/index.js";
+import { restoreSession, type RestorePorts } from "../session-restore/index.js";
 
 export type Ports = AuthPorts & ServicePorts & RestorePorts & SharingPorts;
+
+// The saved basket a guest fills before signing in, keyed by their guest session.
+const guestBasketId = (guestSession: string) => `guest:${guestSession}`;
 
 export interface ApiRequest {
   method: string;
@@ -30,7 +33,14 @@ export async function handle(ports: Ports, request: ApiRequest): Promise<ApiResp
   try {
     const { method, path, headers } = request;
     if (method === "POST" && path === "/session/restore") {
-      return { status: 200, body: await restoreSession(ports, headers.authorization, headers["x-guest-session"]) };
+      return {
+        status: 200,
+        body: await restoreSession(
+          ports,
+          headers.authorization,
+          headers["x-guest-session"] === undefined ? undefined : guestBasketId(headers["x-guest-session"]),
+        ),
+      };
     }
     const guestSession = headers["x-guest-session"];
     const guestRoute = (path === "/basket" && method === "GET") || (path === "/basket/items" && method === "POST");
