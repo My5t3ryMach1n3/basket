@@ -3,6 +3,7 @@ import { authenticate, Unauthorised, type AuthPorts } from "../auth-middleware/i
 import {
   addItem,
   BasketError,
+  clearBasket,
   getBasket,
   removeItem,
   setQuantity,
@@ -34,6 +35,10 @@ export async function handle(ports: Ports, request: ApiRequest): Promise<ApiResp
     const shopperId = await authenticate(ports, headers.authorization);
     const body = (request.body ?? {}) as { sku?: string; quantity?: number; to?: string };
     if (path === "/basket" && method === "GET") return { status: 200, body: await getBasket(ports, shopperId) };
+    if (path === "/basket" && method === "DELETE") {
+      await clearBasket(ports, shopperId);
+      return { status: 204 };
+    }
     if (path === "/basket/share" && method === "POST") {
       await shareBasket(ports, shopperId, String(body.to));
       return { status: 202 };

@@ -71,3 +71,7 @@ export async function setQuantity(
   item.quantity = quantity;
   await saveBasket(ports, basket);
 }
+
+export async function clearBasket(ports: ServicePorts, shopperId: string): Promise<void> {
+  await saveBasket(ports, { shopperId, items: [] });
+}
