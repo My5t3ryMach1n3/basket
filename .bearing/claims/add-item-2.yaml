@@ -1,0 +1,19 @@
+branch: add-item-2
+issues: ["#2"]
+model:
+  added: []
+  removed: []
+files:
+  - path: src/basket-api/auth-middleware/index.ts
+    component: authMiddleware
+  - path: src/basket-api/basket-controller/index.ts
+    component: basketController
+  - path: src/basket-api/basket-repository/index.ts
+    component: basketRepository
+  - path: src/basket-api/basket-service/catalogue.ts
+    component: basketService
+  - path: src/basket-api/basket-service/index.ts
+    component: basketService
+  - path: src/basket-api/basket-service/quantity.ts
+    component: basketService
+note: "Implements #2 within existing components."
