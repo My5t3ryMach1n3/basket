@@ -1,6 +1,13 @@
 // The basket API's routes. Framework-free: the web server hands each request to `handle()`.
 import { authenticate, Unauthorised, type AuthPorts } from "../auth-middleware/index.js";
-import { addItem, BasketError, getBasket, removeItem, type ServicePorts } from "../basket-service/index.js";
+import {
+  addItem,
+  BasketError,
+  getBasket,
+  removeItem,
+  type ServicePorts,
+  setQuantity,
+} from "../basket-service/index.js";
 import { restoreSession, type RestorePorts } from "../session-restore/index.js";
 
 export type Ports = AuthPorts & ServicePorts & RestorePorts;
@@ -31,6 +38,10 @@ export async function handle(ports: Ports, request: ApiRequest): Promise<ApiResp
       return { status: 204 };
     }
     const sku = /^\/basket\/items\/([^/]+)$/.exec(path)?.[1];
+    if (sku !== undefined && method === "PATCH") {
+      await setQuantity(ports, shopperId, decodeURIComponent(sku), Number(body.quantity));
+      return { status: 204 };
+    }
     if (sku !== undefined && method === "DELETE") {
       await removeItem(ports, shopperId, decodeURIComponent(sku));
       return { status: 204 };
