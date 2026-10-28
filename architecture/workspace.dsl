@@ -2,14 +2,14 @@ workspace "Basket" "The approved target architecture: the desired state every PR
   model {
     shopper = person "Shopper" "Someone filling a basket to check out later" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
     }
 
     identityProvider = softwareSystem "Identity provider" "Signs shoppers in and vouches for their tokens" {
       tags "External"
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
     }
     emailProvider = softwareSystem "Email provider" "Delivers transactional email" {
@@ -21,52 +21,52 @@ workspace "Basket" "The approved target architecture: the desired state every PR
     productCatalogue = softwareSystem "Product catalogue" "Names and prices every product on sale" {
       tags "External"
       properties {
-        "bearing.requirements" "#1,#2,#5"
+        "bearing.requirements" "#1,#2,#5,#20"
       }
     }
 
     basket = softwareSystem "Basket" "Keeps each shopper's basket until they check out" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
 
       webApp = container "Web app" "The shop front shoppers browse and fill their basket in" "TypeScript, React" {
         properties {
-          "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+          "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
         }
       }
 
       basketApi = container "Basket API" "Reads and changes baskets on behalf of the web app" "TypeScript, Node.js" {
         properties {
-          "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+          "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
         }
 
         authMiddleware = component "Auth middleware" {
           description "Checks every request's token with the identity provider"
           properties {
             "bearing.path" "src/basket-api/auth-middleware"
-            "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+            "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
           }
         }
         basketController = component "Basket controller" {
           description "Routes basket API requests and maps errors to HTTP responses"
           properties {
             "bearing.path" "src/basket-api/basket-controller"
-            "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+            "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
           }
         }
         basketService = component "Basket service" {
           description "Adds, removes, prices and persists basket items"
           properties {
             "bearing.path" "src/basket-api/basket-service"
-            "bearing.requirements" "#1,#2,#3,#6,#7,#5"
+            "bearing.requirements" "#1,#2,#3,#6,#7,#5,#20"
           }
         }
         basketRepository = component "Basket repository" {
           description "Loads and saves each shopper's basket, one row per shopper, in Postgres"
           properties {
             "bearing.path" "src/basket-api/basket-repository"
-            "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+            "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
           }
         }
         basketSharing = component "Basket sharing" {
@@ -84,10 +84,10 @@ workspace "Basket" "The approved target architecture: the desired state every PR
           }
         }
         sessionRestore = component "Session restore" {
-          description "Hands a shopper back their saved basket when they sign in after their session expired"
+          description "Hands a shopper back their saved basket when they sign in after their session expired, merging in what they added as a guest"
           properties {
             "bearing.path" "src/basket-api/session-restore"
-            "bearing.requirements" "#4"
+            "bearing.requirements" "#4,#20"
           }
         }
       }
@@ -95,24 +95,24 @@ workspace "Basket" "The approved target architecture: the desired state every PR
       database = container "Database" "One row per shopper holding their saved basket" "PostgreSQL" {
         tags "Database"
         properties {
-          "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+          "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
         }
       }
     }
 
     shopper -> webApp "Fills their basket using" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
     }
     shopper -> identityProvider "Signs in using" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
     }
     webApp -> basketController "Makes API calls to" "JSON/HTTPS" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
     }
     basketController -> authMiddleware "Authenticates requests using" {
@@ -122,22 +122,22 @@ workspace "Basket" "The approved target architecture: the desired state every PR
     }
     basketController -> basketService "Reads and changes baskets using" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#6,#7"
+        "bearing.requirements" "#1,#2,#3,#6,#7,#20"
       }
     }
     basketController -> sessionRestore "Restores saved baskets using" {
       properties {
-        "bearing.requirements" "#4"
+        "bearing.requirements" "#4,#20"
       }
     }
     sessionRestore -> authMiddleware "Checks the new sign-in using" {
       properties {
-        "bearing.requirements" "#4"
+        "bearing.requirements" "#4,#20"
       }
     }
-    sessionRestore -> basketRepository "Loads saved baskets from" {
+    sessionRestore -> basketRepository "Loads, merges and saves baskets using" {
       properties {
-        "bearing.requirements" "#4"
+        "bearing.requirements" "#4,#20"
       }
     }
     basketController -> basketSharing "Shares baskets using" {
@@ -167,22 +167,22 @@ workspace "Basket" "The approved target architecture: the desired state every PR
     }
     authMiddleware -> identityProvider "Introspects tokens with" "OAuth 2.0/HTTPS" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
     }
     basketService -> basketRepository "Loads and saves baskets using" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#6,#7,#5,#20"
       }
     }
     basketService -> productCatalogue "Looks up products and prices in" "JSON/HTTPS" {
       properties {
-        "bearing.requirements" "#1,#2,#5"
+        "bearing.requirements" "#1,#2,#5,#20"
       }
     }
     basketRepository -> database "Reads from and writes to" "SQL" {
       properties {
-        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
+        "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5,#20"
       }
     }
 
@@ -221,6 +221,23 @@ workspace "Basket" "The approved target architecture: the desired state every PR
       autoLayout
     }
 
+    dynamic basketApi "req-20" "#20 Fill a basket as a guest" {
+      webApp -> basketController "POST /basket/items, GET /basket with a guest session"
+      basketController -> basketService "addItem(), getBasket()"
+      basketService -> productCatalogue "Checks and prices the products"
+      basketService -> basketRepository "loadBasket(), saveBasket()"
+      basketRepository -> database "Selects and upserts the guest basket"
+      webApp -> basketController "POST /session/restore with the guest session"
+      basketController -> sessionRestore "restoreSession()"
+      sessionRestore -> authMiddleware "authenticate()"
+      authMiddleware -> identityProvider "Introspects the token"
+      sessionRestore -> basketRepository "loadBasket() for both, saveBasket() merged"
+      basketRepository -> database "Selects both baskets and upserts the merged one"
+      autoLayout
+      properties {
+        "bearing.criteria" "AC1:1ffae10c,AC2:ce1fefe8,AC3:409e2516"
+      }
+    }
     dynamic basketApi "req-1" "#1 View the basket" {
       webApp -> basketController "GET /basket"
       basketController -> authMiddleware "authenticate()"
