@@ -64,8 +64,16 @@ export function createApp() {
     },
   };
 
-  const request = (method: string, path: string, token?: string, body?: unknown) =>
-    handle(ports, { method, path, headers: token === undefined ? {} : { authorization: `Bearer ${token}` }, body });
+  const request = (method: string, path: string, token?: string, body?: unknown, guestSession?: string) =>
+    handle(ports, {
+      method,
+      path,
+      headers: {
+        ...(token === undefined ? {} : { authorization: `Bearer ${token}` }),
+        ...(guestSession === undefined ? {} : { "x-guest-session": guestSession }),
+      },
+      body,
+    });
 
   return {
     // Signs a shopper in and returns their token, valid for 30 minutes.
@@ -89,6 +97,15 @@ export function createApp() {
     },
     // What the scheduled sender does on each run.
     sendPendingEmails: () => sendPendingEmails(ports),
+    // A shopper who hasn't signed in, known by their guest session.
+    guest(guestSession: string) {
+      return {
+        get: (path: string) => request("GET", path, undefined, undefined, guestSession),
+        post: (path: string, body?: unknown) => request("POST", path, undefined, body, guestSession),
+        // Signs in as the shopper, bringing the guest session's basket along.
+        signIn: (token: string) => request("POST", "/session/restore", token, undefined, guestSession),
+      };
+    },
     get: (path: string, token?: string) => request("GET", path, token),
     post: (path: string, token?: string, body?: unknown) => request("POST", path, token, body),
     patch: (path: string, token?: string, body?: unknown) => request("PATCH", path, token, body),
