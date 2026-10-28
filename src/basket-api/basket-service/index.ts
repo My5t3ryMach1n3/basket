@@ -57,3 +57,17 @@ export async function removeItem(ports: ServicePorts, shopperId: string, sku: st
   if (items.length === basket.items.length) throw new BasketError(404, `${sku} isn't in the basket`);
   await saveBasket(ports, { shopperId, items });
 }
+
+export async function setQuantity(
+  ports: ServicePorts,
+  shopperId: string,
+  sku: string,
+  quantity: number,
+): Promise<void> {
+  if (!isValidQuantity(quantity)) throw new BasketError(400, `Quantity must be 1 to ${maxQuantity}`);
+  const basket = await loadBasket(ports, shopperId);
+  const item = basket.items.find((candidate) => candidate.sku === sku);
+  if (item === undefined) throw new BasketError(404, `${sku} isn't in the basket`);
+  item.quantity = quantity;
+  await saveBasket(ports, basket);
+}
