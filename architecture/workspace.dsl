@@ -63,7 +63,7 @@ workspace "Basket" "The approved target architecture: the desired state every PR
           }
         }
         basketRepository = component "Basket repository" {
-          description "Loads and saves each shopper's basket in Postgres"
+          description "Loads and saves each shopper's basket, one row per shopper, in Postgres"
           properties {
             "bearing.path" "src/basket-api/basket-repository"
             "bearing.requirements" "#1,#2,#3,#4,#6,#7,#5"
