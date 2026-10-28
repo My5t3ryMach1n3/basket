@@ -10,14 +10,14 @@ import {
   type ServicePorts,
 } from "../basket-service/index.js";
 import { shareBasket, type SharingPorts } from "../basket-sharing/index.js";
-import { restoreSession, type RestorePorts } from "../session-restore/index.js";
+import { guestBasketId, restoreSession, type RestorePorts } from "../session-restore/index.js";
 
 export type Ports = AuthPorts & ServicePorts & RestorePorts & SharingPorts;
 
 export interface ApiRequest {
   method: string;
   path: string;
-  headers: { authorization?: string };
+  headers: { authorization?: string; "x-guest-session"?: string };
   body?: unknown;
 }
 
@@ -30,9 +30,15 @@ export async function handle(ports: Ports, request: ApiRequest): Promise<ApiResp
   try {
     const { method, path, headers } = request;
     if (method === "POST" && path === "/session/restore") {
-      return { status: 200, body: await restoreSession(ports, headers.authorization) };
+      return { status: 200, body: await restoreSession(ports, headers.authorization, headers["x-guest-session"]) };
     }
-    const shopperId = await authenticate(ports, headers.authorization);
+    const guestSession = headers["x-guest-session"];
+    const guestRoute = (path === "/basket" && method === "GET") || (path === "/basket/items" && method === "POST");
+    // A guest can fill and view a basket, kept under their guest session; everything else needs a sign-in.
+    const shopperId =
+      headers.authorization === undefined && guestSession !== undefined && guestRoute
+        ? guestBasketId(guestSession)
+        : await authenticate(ports, headers.authorization);
     const body = (request.body ?? {}) as { sku?: string; quantity?: number; to?: string };
     if (path === "/basket" && method === "GET") return { status: 200, body: await getBasket(ports, shopperId) };
     if (path === "/basket" && method === "DELETE") {
