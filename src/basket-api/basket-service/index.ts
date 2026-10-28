@@ -39,3 +39,14 @@ export async function getBasket(ports: ServicePorts, shopperId: string): Promise
   }
   return { lines, total: lines.reduce((sum, line) => sum + line.price * line.quantity, 0) };
 }
+
+export async function addItem(ports: ServicePorts, shopperId: string, sku: string, quantity: number): Promise<void> {
+  if (!isValidQuantity(quantity)) throw new BasketError(400, `Quantity must be 1 to ${maxQuantity}`);
+  if ((await ports.catalogue.find(sku)) === undefined) throw new BasketError(400, `No product ${sku}`);
+  const basket = await loadBasket(ports, shopperId);
+  const item = basket.items.find((candidate) => candidate.sku === sku);
+  if (item === undefined) basket.items.push({ sku, quantity });
+  else if (isValidQuantity(item.quantity + quantity)) item.quantity += quantity;
+  else throw new BasketError(400, `Quantity must be 1 to ${maxQuantity}`);
+  await saveBasket(ports, basket);
+}
